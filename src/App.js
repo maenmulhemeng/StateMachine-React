@@ -322,39 +322,42 @@ export default function Game() {
   return (
     <>
       <div className="game">
-        <div className="game-board">
-          <h4>priorities</h4>
-          <p>
-            {gameState?.priorities.map((i, index) => (
-              <span key={i + index}>
-                {i}
-                {" | "}
-              </span>
-            ))}
-          </p>
-          <h4>The board (State Map)</h4>
-          <Board
-            stateMap={gameState.stateMap}
-            position={gameState.position}
-            visited={gameState.visited}
-          />
-          {gameState?.stateMap?.length > 0 ? (
-            <div>
-              <h4>Current Direction</h4>
-              <p>{gameState?.direction}</p>
+        {gameState?.stateMap?.length > 0 ? (
+          <>
+            <div className="game-board">
+              <h4>priorities</h4>
+              <p>
+                {gameState?.priorities.map((i, index) => (
+                  <span key={i + index}>
+                    {i}
+                    {" | "}
+                  </span>
+                ))}
+              </p>
+              <h4>The board (State Map)</h4>
+              <Board
+                stateMap={gameState.stateMap}
+                position={gameState.position}
+                visited={gameState.visited}
+              />
 
-              <h4>Instructions</h4>
-              {gameState?.instructions.map((i, index) => (
-                <div key={i + index}>{i}</div>
-              ))}
+              <div>
+                <h4>Current Direction</h4>
+                <p>{gameState?.direction}</p>
+
+                <h4>Instructions</h4>
+                {gameState?.instructions.map((i, index) => (
+                  <div key={i + index}>{i}</div>
+                ))}
+              </div>
             </div>
-          ) : (
-            <></>
-          )}
-        </div>
-        <div className="game-info">
-          <ol>{moves}</ol>
-        </div>
+            <div className="game-info">
+              <ol>{moves}</ol>
+            </div>
+          </>
+        ) : (
+          <></>
+        )}
         {gameState?.stateMap?.length == 0 ? (
           <div className="inputArea">
             <InputArea parseUserInput={parseUserInput}></InputArea>

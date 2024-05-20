@@ -10,7 +10,7 @@ export const initialState = {
   isBoost: false,
   stateMap: [],
 };
-export const reducer = (state, action) => {
+export const reducer = (state = initialState, action) => {
   switch (action.type) {
     case "setVisited":
       return { ...state, visited: [...action.payload] };
