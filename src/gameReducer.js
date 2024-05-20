@@ -10,7 +10,7 @@ export const initialState = {
   isBoost: false,
   stateMap: [],
 };
-export const reducer = (state, action) => {
+export const reducer = (state = initialState, action) => {
   switch (action.type) {
     case "setVisited":
       return { ...state, visited: [...action.payload] };
@@ -38,7 +38,7 @@ export const reducer = (state, action) => {
         instructions: [...state.instructions, action.payload],
       };
     case "reversePriorities":
-      return { ...state, priorities: [...priorities].reverse() };
+      return { ...state, priorities: [...state.priorities].reverse() };
     case "setGameState":
       return { ...action.payload };
     case "deleteBlocker":

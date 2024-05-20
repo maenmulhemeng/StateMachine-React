@@ -19,7 +19,6 @@ function changeDirectionToSouth() {
 }
 // This funciton accepts a list as a parameter and reverse it
 function reversePriorities(priorities) {
-  priorities.reverse();
   return priorities;
 }
 // This funciton toggle the boost value
@@ -67,7 +66,11 @@ function lookAround(
         possibleState == "#" ||
         (possibleState == "x" && !isBoost) ||
         foundDirection ||
-        visited.includes(positionOfPossibleState)
+        visited.find(
+          (v) =>
+            v[0] == positionOfPossibleState[0] &&
+            v[1] == positionOfPossibleState[1],
+        )
       )
     ) {
       // We'll consider this direction a good potential to look at
