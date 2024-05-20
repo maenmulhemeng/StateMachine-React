@@ -41,6 +41,17 @@ export const reducer = (state, action) => {
       return { ...state, priorities: [...priorities].reverse() };
     case "setGameState":
       return { ...action.payload };
+    case "deleteBlocker":
+      return {
+        ...state,
+        stateMap: [
+          ...state.stateMap.map((r, i) =>
+            i == action.payload[0]
+              ? [...r.map((c, j) => (j == action.payload[1] ? "blank" : c))]
+              : [...r],
+          ),
+        ],
+      };
     default:
       return state;
   }

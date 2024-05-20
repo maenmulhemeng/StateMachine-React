@@ -28,7 +28,9 @@ function toggleBoost(boost) {
 }
 // This function finds the other teleporters and returns it
 function teleport(teleportPosition, teleports) {
-  return teleports.filter((t) => t != teleportPosition);
+  return teleports.filter(
+    (t) => t[0] != teleportPosition[0] && t[1] != teleportPosition[1],
+  )[0];
 }
 // With respect to the prioritized dicrections, this function finds to which direction
 // we should look at to escape from blockers like @ or x without boost power
@@ -40,7 +42,7 @@ function lookAround(
   isBoost,
   visited,
   L,
-  C
+  C,
 ) {
   // No direction until we find one
   let foundDirection = false;
@@ -49,9 +51,14 @@ function lookAround(
   // Let's check our priorities
   priorities.forEach((possibleDirection) => {
     // Let's look toward the position of the suggested direction
-    positionOfPossibleState = getNextPistion(position, possibleDirection, L, C);
+    const positionOfPossibleState = getNextPistion(
+      position,
+      possibleDirection,
+      L,
+      C,
+    );
     // And then let's get its state
-    possibleState =
+    const possibleState =
       stateMap[positionOfPossibleState[0]][positionOfPossibleState[1]];
     // if the next state is not a blocker @ and now an x without boost and the next position has not beed visited and we haven't seen
     // a good direction to look at
@@ -78,16 +85,6 @@ function lookAround(
 // This action remove change the state into blank
 function deleteBlocker(position, stateMap) {
   stateMap[position[0]][position[1]] = "blank";
-}
-// Transition Funcion is (state1,state2)=>commands and by executing these commands we'll move from state1 to state2
-function transition(currentState, nextState, isBoost) {
-  // For the special case of facing a blocker x when we have the boost power
-  // We'd return the command immediately
-  if (nextState == "x" && isBoost) {
-    return [commandMove, commandDeleteBlocker];
-    // But for the other cases we'll ask the state machine table
-  }
-  return stateMachine[currentState][nextState];
 }
 
 export function useStateMachine() {
@@ -117,7 +114,7 @@ export function useStateMachine() {
   const commandLoop = { name: "loop" };
   const commandDeleteBlocker = { name: "deleteBlocker", action: deleteBlocker };
 
-  stateMachine = {
+  const stateMachine = {
     blank: {
       blank: [commandMove],
       "#": [commandLookAround],
@@ -288,5 +285,16 @@ export function useStateMachine() {
     },
   };
 
-  return [stateMachine, transition];
+  // Transition Funcion is (state1,state2)=>commands and by executing these commands we'll move from state1 to state2
+  function transition(currentState, nextState, isBoost) {
+    // For the special case of facing a blocker x when we have the boost power
+    // We'd return the command immediately
+    if (nextState == "x" && isBoost) {
+      return [commandMove, commandDeleteBlocker];
+      // But for the other cases we'll ask the state machine table
+    }
+    return stateMachine[currentState][nextState];
+  }
+
+  return [transition];
 }
