@@ -38,7 +38,7 @@ export const reducer = (state, action) => {
         instructions: [...state.instructions, action.payload],
       };
     case "reversePriorities":
-      return { ...state, priorities: [...priorities].reverse() };
+      return { ...state, priorities: [...state.priorities].reverse() };
     case "setGameState":
       return { ...action.payload };
     case "deleteBlocker":

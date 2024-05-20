@@ -1,4 +1,4 @@
-import { useState, useReducer } from "react";
+import { useState, useReducer, useEffect } from "react";
 import { useStateMachine } from "./stateMachine";
 import { reducer, initialState } from "./gameReducer";
 
@@ -24,7 +24,13 @@ function InputArea({ parseUserInput }) {
         }}
       ></textarea>
       <div>
-        <button onClick={() => parseUserInput(userInput)}> Parse </button>
+        <button
+          disabled={userInput.length == 0}
+          onClick={() => parseUserInput(userInput)}
+        >
+          {" "}
+          Parse{" "}
+        </button>
         <button
           onClick={() => {
             setUserInput(caseOne());
@@ -44,17 +50,23 @@ function InputArea({ parseUserInput }) {
     </div>
   );
 }
-function Square({ value, isCurrentPosition }) {
-  if (isCurrentPosition && value == "$") {
-    return <div className="square targetPoition">{value}</div>;
-  } else if (isCurrentPosition && value != "$") {
-    return <div className="square currentPosition">{value}</div>;
+function Square({ value, isCurrentPosition, isVisited }) {
+  console.log(isVisited());
+  if (isCurrentPosition) {
+    if (value == "$") {
+      return <div className="square targetPoition">{value}</div>;
+    } else if (value != "$") {
+      return <div className="square currentPosition">{value}</div>;
+    }
+  } else if (isVisited()) {
+    console.log("YEs");
+    return <div className="square visited">{value}</div>;
   }
+
   return <div className="square">{value}</div>;
 }
 
-function Board({ position, stateMap }) {
-  //alert(stateMap[3][1]);
+function Board({ position, stateMap, visited }) {
   return (
     <>
       {stateMap?.map((row, i) => (
@@ -63,7 +75,9 @@ function Board({ position, stateMap }) {
             <Square
               key={"col" + j}
               value={col == "blank" ? " " : col}
-              onSquareClick={() => handleClick(i)}
+              isVisited={() =>
+                visited.find((v) => v[0] == i && v[1] == j)?.length > 0
+              }
               isCurrentPosition={position[0] == i && position[1] == j}
             />
           ))}
@@ -77,7 +91,24 @@ export default function Game() {
   const [gameState, dispatch] = useReducer(reducer, initialState);
   const [history, setHistory] = useState([]);
   const [transition] = useStateMachine();
-
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.log("asd", gameState.visited);
+      if (
+        gameState.stateMap.length > 0 &&
+        gameState.stateMap[gameState.position[0]][gameState.position[1]] !=
+          "$" &&
+        !gameState.visited.find(
+          (v) => v[0] == gameState.position[0] && v[1] == gameState.position[1],
+        )
+      ) {
+        buildHistory();
+      }
+    }, 1000);
+    return () => {
+      clearTimeout(timeout);
+    };
+  });
   function jumpTo(nextMove) {
     dispatch({
       type: "setGameState",
@@ -190,7 +221,8 @@ export default function Game() {
     );
     //console.log(commands);
     // The answer is a list of commands
-    commands.forEach((command) => {
+    for (let i = 0; i < commands.length; i++) {
+      const command = commands[i];
       //console.log(command.name);
       switch (command.name) {
         case "move":
@@ -258,6 +290,8 @@ export default function Game() {
           break;
         case "impossible":
           break;
+        case "done":
+          return gameState.instructions;
         case "lookAround":
           // execute the command action
           const [direction1, nextPoition1, stop1] = command["action"](
@@ -282,7 +316,7 @@ export default function Game() {
             nextPoition = nextPoition1;
           }
       }
-    });
+    }
     setHistory([...history, { ...gameState }]);
     //} // While
     //console.log("visited ", gameState.visited);
@@ -296,10 +330,23 @@ export default function Game() {
     <>
       <div className="game">
         <div className="game-board">
-          <Board stateMap={gameState.stateMap} position={gameState.position} />
+          <h4>priorities</h4>
+          <p>
+            {gameState?.priorities.map((i, index) => (
+              <span key={i + index}>
+                {i}
+                {" | "}
+              </span>
+            ))}
+          </p>
+          <h4>The board (State Map)</h4>
+          <Board
+            stateMap={gameState.stateMap}
+            position={gameState.position}
+            visited={gameState.visited}
+          />
           {gameState?.stateMap?.length > 0 ? (
             <div>
-              <button onClick={() => buildHistory()}>Next Step</button>
               <h4>Current Direction</h4>
               <p>{gameState?.direction}</p>
 
