@@ -3,6 +3,14 @@ import { useStateMachine } from "./stateMachine";
 import { reducer, initialState } from "./gameReducer";
 
 function InputArea({ parseUserInput }) {
+  function caseOne() {
+    return "5 6\n# # # # # #\n# @ E   $ #\n#   N     #\n# x       #\n# # # # # #";
+  }
+
+  function caseTwo() {
+    return "10 10\n# # # # # # # # # #\n#                 #\n#     S       W   #\n#                 #\n#     $           #\n#                 #\n# @               #\n#                 #\n# E           N   #\n# # # # # # # # # #";
+  }
+
   const [userInput, setUserInput] = useState("");
   return (
     <div>
@@ -15,7 +23,24 @@ function InputArea({ parseUserInput }) {
           setUserInput(e.target.value);
         }}
       ></textarea>
-      <button onClick={() => parseUserInput(userInput)}> Parse </button>
+      <div>
+        <button onClick={() => parseUserInput(userInput)}> Parse </button>
+        <button
+          onClick={() => {
+            setUserInput(caseOne());
+          }}
+        >
+          Copy Case 1
+        </button>
+
+        <button
+          onClick={() => {
+            setUserInput(caseTwo());
+          }}
+        >
+          Copy Case 2
+        </button>
+      </div>
     </div>
   );
 }
@@ -260,7 +285,7 @@ export default function Game() {
     });
     setHistory([...history, { ...gameState }]);
     //} // While
-    console.log("visited ", gameState.visited);
+    //console.log("visited ", gameState.visited);
     return gameState.instructions;
   }
 
@@ -275,7 +300,13 @@ export default function Game() {
           {gameState?.stateMap?.length > 0 ? (
             <div>
               <button onClick={() => buildHistory()}>Next Step</button>
-              <p>Direction : {gameState?.direction}</p>
+              <h4>Current Direction</h4>
+              <p>{gameState?.direction}</p>
+
+              <h4>Instructions</h4>
+              {gameState?.instructions.map((i, index) => (
+                <div key={i + index}>{i}</div>
+              ))}
             </div>
           ) : (
             <></>

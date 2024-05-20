@@ -32,7 +32,7 @@ export const reducer = (state, action) => {
       return { ...state, stateMap: action.payload };
     case "addVisit":
       return { ...state, visited: [...state.visited, action.payload] };
-    case "addInstructions":
+    case "addInstruction":
       return {
         ...state,
         instructions: [...state.instructions, action.payload],
