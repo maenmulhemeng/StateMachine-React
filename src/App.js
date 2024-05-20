@@ -2,7 +2,7 @@ import { useState, useReducer, useEffect } from "react";
 import { useStateMachine } from "./stateMachine";
 import { reducer, initialState } from "./gameReducer";
 
-function InputArea({ parseUserInput }) {
+export function InputArea({ parseUserInput }) {
   function caseOne() {
     return "5 6\n# # # # # #\n# @ E   $ #\n#   N     #\n# x       #\n# # # # # #";
   }
@@ -50,8 +50,7 @@ function InputArea({ parseUserInput }) {
     </div>
   );
 }
-function Square({ value, isCurrentPosition, isVisited }) {
-  console.log(isVisited());
+export function Square({ value, isCurrentPosition, isVisited }) {
   if (isCurrentPosition) {
     if (value == "$") {
       return <div className="square targetPoition">{value}</div>;
@@ -59,7 +58,6 @@ function Square({ value, isCurrentPosition, isVisited }) {
       return <div className="square currentPosition">{value}</div>;
     }
   } else if (isVisited()) {
-    console.log("YEs");
     return <div className="square visited">{value}</div>;
   }
 
@@ -93,7 +91,6 @@ export default function Game() {
   const [transition] = useStateMachine();
   useEffect(() => {
     const timeout = setTimeout(() => {
-      console.log("asd", gameState.visited);
       if (
         gameState.stateMap.length > 0 &&
         gameState.stateMap[gameState.position[0]][gameState.position[1]] !=
@@ -158,7 +155,6 @@ export default function Game() {
         stateMapTemp.push(lineArray.map((e) => (e == " " ? "blank" : e)));
       }
     });
-    //console.log(stateMapTemp, L, C);
     dispatch({
       type: "setL",
       payload: L1,
@@ -219,11 +215,9 @@ export default function Game() {
       gameState.stateMap[nextPoition[0]][nextPoition[1]],
       gameState.isBoost,
     );
-    //console.log(commands);
     // The answer is a list of commands
     for (let i = 0; i < commands.length; i++) {
       const command = commands[i];
-      //console.log(command.name);
       switch (command.name) {
         case "move":
           // Consider the current position is visited
@@ -318,8 +312,7 @@ export default function Game() {
       }
     }
     setHistory([...history, { ...gameState }]);
-    //} // While
-    //console.log("visited ", gameState.visited);
+
     return gameState.instructions;
   }
 
