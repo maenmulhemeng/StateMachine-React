@@ -88,7 +88,180 @@ function Board({ position, stateMap, visited }) {
 export default function Game() {
   const [gameState, dispatch] = useReducer(reducer, initialState);
   const [history, setHistory] = useState([]);
-  const [transition] = useStateMachine();
+  const [
+    transition,
+    commandMove,
+    commandLookAround,
+    commandImpossible,
+    commandDone,
+    commandChangeDirectionToNorth,
+    commandChangeDirectionToWest,
+    commandChangeDirectionToSouth,
+    commandChangeDirectionToEast,
+    commandReverse,
+    commandBoost,
+    commandTeleporters,
+    commandLoop,
+    commandDeleteBlocker,
+  ] = useStateMachine();
+
+  commandImpossible.action = () => {};
+  commandDone.action = () => {
+    return gameState.instructions;
+  };
+
+  commandReverse.action = () => {
+    // execute the command action (callback function)
+    dispatch({
+      type: "reversePriorities",
+      payload: gameState.priorities,
+    });
+  };
+
+  commandBoost.action = () => {
+    dispatch({
+      type: "setIsBoost",
+      payload: !gameState.isBoost,
+    });
+  };
+
+  commandTeleporters.action = () => {
+    // Consider the current position is visited
+    dispatch({
+      type: "addVisit",
+      payload: gameState.position,
+    });
+    // Add the direction (instuction) to the solution
+    dispatch({
+      type: "addInstruction",
+      payload: gameState.direction,
+    });
+    // execute the command action (callback function)
+    const nextP = getNextPosition(
+      gameState.position,
+      gameState.direction,
+      gameState.L,
+      gameState.C,
+    );
+    dispatch({
+      type: "setPosition",
+      payload: gameState.teleports.filter(
+        (t) => !(t[0] == nextP[0] && t[1] == nextP[1]),
+      )[0],
+    });
+  };
+
+  commandLoop.action = () => {
+    return ["LOOP"];
+  };
+  commandDeleteBlocker.action = () => {
+    dispatch({
+      type: "deleteBlocker",
+      payload: getNextPosition(
+        gameState.position,
+        gameState.direction,
+        gameState.L,
+        gameState.C,
+      ),
+    });
+  };
+  commandMove.action = () => {
+    // Consider the current position is visited
+    dispatch({
+      type: "addVisit",
+      payload: gameState.position,
+    });
+    // Add the direction (instuction) to the solution
+    dispatch({
+      type: "addInstruction",
+      payload: gameState.direction,
+    });
+
+    // execute the command action (callback function)
+    dispatch({
+      type: "setPosition",
+      payload: getNextPosition(
+        gameState.position,
+        gameState.direction,
+        gameState.L,
+        gameState.C,
+      ),
+    });
+  };
+
+  commandLookAround.action = () => {
+    // No direction until we find one
+    let foundDirection = false;
+    let resultDirection = "";
+    let resultnextPosition = [];
+
+    // Let's check our priorities
+    gameState.priorities.forEach((possibleDirection) => {
+      // Let's look toward the position of the suggested direction
+      const positionOfPossibleState = getNextPosition(
+        gameState.position,
+        possibleDirection,
+        gameState.L,
+        gameState.C,
+      );
+
+      // And then let's get its state
+      const possibleState =
+        gameState.stateMap[positionOfPossibleState[0]][
+          positionOfPossibleState[1]
+        ];
+      // if the next state is not a blocker @ and now an x without boost and the next position has not beed visited and we haven't seen
+      // a good direction to look at
+      if (
+        !(
+          possibleState == "#" ||
+          (possibleState == "x" && !gameState.isBoost) ||
+          foundDirection ||
+          gameState.visited.find(
+            (v) =>
+              v[0] == positionOfPossibleState[0] &&
+              v[1] == positionOfPossibleState[1],
+          )
+        )
+      ) {
+        // We'll consider this direction a good potential to look at
+        resultDirection = possibleDirection;
+        // And we'll take its state
+        resultnextPosition = positionOfPossibleState;
+        // Direction found
+        foundDirection = true;
+        // Let's return them
+        return;
+      }
+    });
+    return [resultDirection, resultnextPosition, foundDirection];
+  };
+
+  commandChangeDirectionToNorth.action = () => {
+    dispatch({
+      type: "setDirection",
+      payload: "NORTH",
+    });
+  };
+  commandChangeDirectionToWest.action = () => {
+    dispatch({
+      type: "setDirection",
+      payload: "WEST",
+    });
+  };
+  commandChangeDirectionToSouth.action = () => {
+    dispatch({
+      type: "setDirection",
+      payload: "SOUTH",
+    });
+  };
+  commandChangeDirectionToEast.action = () => {
+    dispatch({
+      type: "setDirection",
+      payload: "EAST",
+    });
+  };
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (
@@ -178,7 +351,7 @@ export default function Game() {
 
   // Given the current position and the direction, this function return the next
   // position with respect to the matrix boundaries
-  function getNextPistion(position, direction, L, C) {
+  function getNextPosition(position, direction, L, C) {
     const i = position[0];
     const j = position[1];
     // heading south means moving down on rows
@@ -202,7 +375,7 @@ export default function Game() {
   function getInstructions() {
     // Give me the current position and the direction we can know the what the next position is
 
-    let nextPoition = getNextPistion(
+    let nextPosition = getNextPosition(
       gameState.position,
       gameState.direction,
       gameState.L,
@@ -212,94 +385,47 @@ export default function Game() {
     // What should we do if we want to move from current state to the next state of the next position with respect to the boos value
     const commands = transition(
       gameState.stateMap[gameState.position[0]][gameState.position[1]],
-      gameState.stateMap[nextPoition[0]][nextPoition[1]],
+      gameState.stateMap[nextPosition[0]][nextPosition[1]],
       gameState.isBoost,
     );
+
     // The answer is a list of commands
     for (let i = 0; i < commands.length; i++) {
       const command = commands[i];
       switch (command.name) {
         case "move":
-          // Consider the current position is visited
-          dispatch({
-            type: "addVisit",
-            payload: gameState.position,
-          });
-          // Add the direction (instuction) to the solution
-          dispatch({
-            type: "addInstruction",
-            payload: gameState.direction,
-          });
-
-          // execute the command action (callback function)
-          dispatch({
-            type: "setPosition",
-            payload: nextPoition,
-          });
+          command.action();
           break;
         case "deleteBlocker":
-          dispatch({
-            type: "deleteBlocker",
-            payload: nextPoition,
-          });
+          command.action();
           break;
         case "teleporters":
-          // Consider the current position is visited
-          dispatch({
-            type: "addVisit",
-            payload: gameState.position,
-          });
-          // Add the direction (instuction) to the solution
-          dispatch({
-            type: "addInstruction",
-            payload: gameState.direction,
-          });
-          // execute the command action (callback function)
-          dispatch({
-            type: "setPosition",
-            payload: command["action"](gameState.position, gameState.teleports),
-          });
-
+          command.action();
           break;
-        case "changeDirection":
-          // execute the command action (callback function)
-          dispatch({
-            type: "setDirection",
-            payload: command["action"](),
-          });
+        case "changeDirectionNorth":
+          command.action();
+          break;
+        case "changeDirectionWest":
+          command.action();
+          break;
+        case "changeDirectionSouth":
+          command.action();
+          break;
+        case "changeDirectionEast":
+          command.action();
           break;
         case "reverse":
-          // execute the command action (callback function)
-          dispatch({
-            type: "reversePriorities",
-            payload: command["action"](gameState.priorities),
-          });
+          command.action();
           break;
         case "boost":
-          dispatch({
-            type: "setIsBoost",
-            payload: command["action"](gameState.isBoost),
-          });
-          // execute the command action (callback function)
+          command.action();
           break;
         case "impossible":
-          break;
+          return;
         case "done":
-          return gameState.instructions;
+          return command.action();
         case "lookAround":
-          // execute the command action
-          const [direction1, nextPoition1, stop1] = command["action"](
-            gameState.priorities,
-            getNextPistion,
-            gameState.position,
-            gameState.stateMap,
-            gameState.isBoost,
-            gameState.visited,
-            gameState.L,
-            gameState.C,
-          );
-          // if we could not find a position to go to after looking around
-          // We'll consider ourselves stacking in a loop
+          const [direction1, nextPosition1, stop1] = command.action();
           if (!stop1) {
             return ["LOOP"];
           } else {
@@ -307,8 +433,9 @@ export default function Game() {
               type: "setDirection",
               payload: direction1,
             });
-            nextPoition = nextPoition1;
+            nextPosition = nextPosition1;
           }
+          break;
       }
     }
     setHistory([...history, { ...gameState }]);

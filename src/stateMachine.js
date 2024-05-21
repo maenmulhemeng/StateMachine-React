@@ -1,39 +1,39 @@
-function move(nextPoition) {
+function defaultMove(nextPoition) {
   return nextPoition;
 }
 // This funciton returns the value the represent heading north
-function changeDirectionToNorth() {
+function defaultChangeDirectionToNorth() {
   return "NORTH";
 }
 // This funciton returns the value the represent heading west
-function changeDirectionToWest() {
+function defaultChangeDirectionToWest() {
   return "WEST";
 }
 // This funciton returns the value the represent heading east
-function changeDirectionToEast() {
+function defaultChangeDirectionToEast() {
   return "EAST";
 }
 // This funciton returns the value the represent heading south
-function changeDirectionToSouth() {
+function defaultChangeDirectionToSouth() {
   return "SOUTH";
 }
 // This funciton accepts a list as a parameter and reverse it
-function reversePriorities(priorities) {
+function defaultReversePriorities(priorities) {
   return priorities;
 }
 // This funciton toggle the boost value
-function toggleBoost(boost) {
+function defaultToggleBoost(boost) {
   return !boost;
 }
 // This function finds the other teleporters and returns it
-function teleport(teleportPosition, teleports) {
+function defaultTeleport(teleportPosition, teleports) {
   return teleports.filter(
     (t) => t[0] != teleportPosition[0] && t[1] != teleportPosition[1],
   )[0];
 }
 // With respect to the prioritized dicrections, this function finds to which direction
 // we should look at to escape from blockers like @ or x without boost power
-function lookAround(
+function defaultLookAround(
   priorities,
   getNextPistion,
   position,
@@ -86,36 +86,39 @@ function lookAround(
   return [resultDirection, resultNextPoition, foundDirection];
 }
 // This action remove change the state into blank
-function deleteBlocker(position, stateMap) {
+function defaultDeleteBlocker(position, stateMap) {
   stateMap[position[0]][position[1]] = "blank";
 }
 
 export function useStateMachine() {
-  const commandMove = { name: "move", action: move };
-  const commandLookAround = { name: "lookAround", action: lookAround };
+  const commandMove = { name: "move", action: defaultMove };
+  const commandLookAround = { name: "lookAround", action: defaultLookAround };
   const commandImpossible = { name: "impossible" };
   const commandDone = { name: "done" };
   const commandChangeDirectionToNorth = {
-    name: "changeDirection",
-    action: changeDirectionToNorth,
+    name: "changeDirectionNorth",
+    action: defaultChangeDirectionToNorth,
   };
   const commandChangeDirectionToWest = {
-    name: "changeDirection",
-    action: changeDirectionToWest,
+    name: "changeDirectionWest",
+    action: defaultChangeDirectionToWest,
   };
   const commandChangeDirectionToSouth = {
-    name: "changeDirection",
-    action: changeDirectionToSouth,
+    name: "changeDirectionSouth",
+    action: defaultChangeDirectionToSouth,
   };
   const commandChangeDirectionToEast = {
-    name: "changeDirection",
-    action: changeDirectionToEast,
+    name: "changeDirectionEast",
+    action: defaultChangeDirectionToEast,
   };
-  const commandReverse = { name: "reverse", action: reversePriorities };
-  const commandBoost = { name: "boost", action: toggleBoost };
-  const commandTeleporters = { name: "teleporters", action: teleport };
+  const commandReverse = { name: "reverse", action: defaultReversePriorities };
+  const commandBoost = { name: "boost", action: defaultToggleBoost };
+  const commandTeleporters = { name: "teleporters", action: defaultTeleport };
   const commandLoop = { name: "loop" };
-  const commandDeleteBlocker = { name: "deleteBlocker", action: deleteBlocker };
+  const commandDeleteBlocker = {
+    name: "deleteBlocker",
+    action: defaultDeleteBlocker,
+  };
 
   const stateMachine = {
     blank: {
@@ -299,5 +302,20 @@ export function useStateMachine() {
     return stateMachine[currentState][nextState];
   }
 
-  return [transition];
+  return [
+    transition,
+    commandMove,
+    commandLookAround,
+    commandImpossible,
+    commandDone,
+    commandChangeDirectionToNorth,
+    commandChangeDirectionToWest,
+    commandChangeDirectionToSouth,
+    commandChangeDirectionToEast,
+    commandReverse,
+    commandBoost,
+    commandTeleporters,
+    commandLoop,
+    commandDeleteBlocker,
+  ];
 }
